@@ -1,0 +1,88 @@
+/* Custom CSS for animations and general styling */
+html {
+    scroll-behavior: smooth;
+}
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Cursor */
+.cursor {
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+}
+
+.cursor-follower {
+    transform: translate(-50%, -50%);
+    z-index: 9998;
+}
+
+/* Mobile Menu Hamburger Animation */
+.hamburger.active .bar:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+.hamburger.active .bar:nth-child(2) {
+    opacity: 0;
+}
+.hamburger.active .bar:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Mobile Nav Links Overlay */
+.nav-links.active {
+    display: flex;
+}
+
+/* Keyframes for Hero Floating Icons */
+@keyframes float-1 {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+    50% { transform: translate(-50%, -50%) translateY(-20px); }
+}
+@keyframes float-2 {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+    50% { transform: translate(-50%, -50%) translateY(20px); }
+}
+@keyframes float-3 {
+    0%, 100% { transform: translateX(-50%) translateY(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-50%) translateY(15px); }
+}
+@keyframes float-4 {
+    0%, 100% { transform: translate(0, 0) translateY(0); }
+    50% { transform: translate(0, 0) translateY(-25px); }
+}
+@keyframes float-5 {
+    0%, 100% { transform: translate(0, 0) translateY(0); }
+    50% { transform: translate(0, 0) translateY(18px); }
+}
+@keyframes float-6 {
+    0%, 100% { transform: translateX(50%) translateY(-50%) translateY(0); }
+    50% { transform: translateX(50%) translateY(-50%) translateY(-10px); }
+}
+
+.floating-icon {
+    animation-duration: 4s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+}
+
+.floating-icon:nth-child(1) { animation-name: float-1; animation-delay: 0s; }
+.floating-icon:nth-child(2) { animation-name: float-2; animation-delay: 0.5s; }
+.floating-icon:nth-child(3) { animation-name: float-3; animation-delay: 1s; }
+.floating-icon:nth-child(4) { animation-name: float-4; animation-delay: 1.5s; }
+.floating-icon:nth-child(5) { animation-name: float-5; animation-delay: 2s; }
+.floating-icon:nth-child(6) { animation-name: float-6; animation-delay: 2.5s; }
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-out forwards;
+}
