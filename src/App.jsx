@@ -274,8 +274,13 @@ const App = () => {
             return;
         }
 
+        // ✅ CORRECTED PART: Uses the environment variable
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const endpoint = `${apiUrl}/contact/submit`;
+
         try {
-            const response = await fetch('http://localhost:5000/api/contact/submit', {
+            // Use the new 'endpoint' variable
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -559,4 +564,4 @@ const App = () => {
     );
 };
 
-export default App; 
+export default App;
