@@ -248,71 +248,14 @@ const App = () => {
     };
 
     // Backend API form submission handler
-    const handleFormSubmit = async (e) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setFormMessage({ text: '', type: '' });
-
-        const formData = new FormData(e.target);
-        const name = formData.get('name');
-        const email = formData.get('email');
-        const message = formData.get('message');
-
-        if (!name || !email || !message) {
-            setFormMessage({ text: 'Please fill in all fields.', type: 'error' });
-            setIsSubmitting(false);
-            return;
-        }
-
-        // ✅ THE FIX IS HERE: Using the environment variable
-        const apiUrl = import.meta.env.VITE_API_URL;
-        const endpoint = `${apiUrl}/contact/submit`;
-
-        try {
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: name.trim(),
-                    email: email.trim(),
-                    message: message.trim()
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                setFormMessage({ 
-                    text: data.message, 
-                    type: 'success' 
-                });
-                e.target.reset();
-            } else {
-                if (data.errors && data.errors.length > 0) {
-                    const errorMessages = data.errors.map(error => error.msg).join(', ');
-                    setFormMessage({ 
-                        text: `Validation error: ${errorMessages}`, 
-                        type: 'error' 
-                    });
-                } else {
-                    setFormMessage({ 
-                        text: data.message || 'Something went wrong. Please try again later.', 
-                        type: 'error' 
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Form submission error:', error);
-            setFormMessage({ 
-                text: 'Failed to send message. Please try again later.', 
-                type: 'error' 
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+  // TEMPORARY DEBUGGING FUNCTION
+const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    
+    const apiUrl = import.meta.env.VITE_API_URL;
+    
+    alert("The API URL my code sees is: " + apiUrl); 
+};
 
     return (
       <div className="min-h-screen bg-gray-950 text-gray-200 font-poppins relative overflow-hidden">
