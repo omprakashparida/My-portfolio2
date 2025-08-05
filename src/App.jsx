@@ -274,7 +274,7 @@ const App = () => {
             return;
         }
 
-        // ✅ CORRECTED PART: Uses the environment variable
+        // ✅ This is the corrected part that uses the environment variable
         const apiUrl = import.meta.env.VITE_API_URL;
         const endpoint = `${apiUrl}/contact/submit`;
 
@@ -301,7 +301,6 @@ const App = () => {
                 });
                 e.target.reset(); // Clear the form
             } else {
-                // Handle validation errors specifically
                 if (data.errors && data.errors.length > 0) {
                     const errorMessages = data.errors.map(error => error.msg).join(', ');
                     setFormMessage({ 
