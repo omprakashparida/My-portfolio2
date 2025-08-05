@@ -274,13 +274,8 @@ const App = () => {
             return;
         }
 
-        // ✅ This is the corrected part that uses the environment variable
-        const apiUrl = import.meta.env.VITE_API_URL;
-        const endpoint = `${apiUrl}/contact/submit`;
-
         try {
-            // Use the new 'endpoint' variable
-            const response = await fetch(endpoint, {
+            const response = await fetch('http://localhost:5000/api/contact/submit', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -301,6 +296,7 @@ const App = () => {
                 });
                 e.target.reset(); // Clear the form
             } else {
+                // Handle validation errors specifically
                 if (data.errors && data.errors.length > 0) {
                     const errorMessages = data.errors.map(error => error.msg).join(', ');
                     setFormMessage({ 
@@ -563,4 +559,4 @@ const App = () => {
     );
 };
 
-export default App;
+export default App; 
