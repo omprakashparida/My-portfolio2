@@ -248,89 +248,98 @@ const App = () => {
     };
 
     // Backend API form submission handler
-  // TEMPORARY DEBUGGING FUNCTION
-const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    
-    const apiUrl = import.meta.env.VITE_API_URL;
-    
-    alert("The API URL my code sees is: " + apiUrl); 
-};
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setFormMessage({ text: '', type: '' });
+
+        const formData = new FormData(e.target);
+        const name = formData.get('name');
+        const email = formData.get('email');
+        const message = formData.get('message');
+
+        if (!name || !email || !message) {
+            setFormMessage({ text: 'Please fill in all fields.', type: 'error' });
+            setIsSubmitting(false);
+            return;
+        }
+
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const endpoint = `${apiUrl}/contact/submit`;
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: name.trim(),
+                    email: email.trim(),
+                    message: message.trim()
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setFormMessage({ 
+                    text: data.message, 
+                    type: 'success' 
+                });
+                e.target.reset();
+            } else {
+                if (data.errors && data.errors.length > 0) {
+                    const errorMessages = data.errors.map(error => error.msg).join(', ');
+                    setFormMessage({ 
+                        text: `Validation error: ${errorMessages}`, 
+                        type: 'error' 
+                    });
+                } else {
+                    setFormMessage({ 
+                        text: data.message || 'Something went wrong. Please try again later.', 
+                        type: 'error' 
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Form submission error:', error);
+            setFormMessage({ 
+                text: 'Failed to send message. Please try again later.', 
+                type: 'error' 
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
-      <div className="min-h-screen bg-gray-950 text-gray-200 font-poppins relative overflow-hidden">
-        <CustomCursor />
-        <nav className="fixed w-full bg-gray-900 bg-opacity-90 backdrop-blur-sm z-40 shadow-lg py-4">
-            <div className="container mx-auto px-4 flex justify-between items-center">
-                <a href="#home" className="text-white text-3xl font-extrabold font-montserrat">
-                    Om<span className="text-indigo-500">.</span>
-                </a>
-                <div className={`md:flex nav-links ${isNavActive ? 'flex flex-col absolute top-full left-0 w-full bg-gray-900 md:relative md:flex-row md:space-x-8 md:bg-transparent md:top-0 md:w-auto p-4 md:p-0 items-center justify-center shadow-lg md:shadow-none' : 'hidden'}`}>
-                    <a href="#home" onClick={(e) => handleNavLinkClick(e, '#home')} className="nav-link text-gray-300 hover:text-indigo-500 transition-colors duration-300 px-3 py-2 text-lg font-medium">Home</a>
-                    <a href="#skills" onClick={(e) => handleNavLinkClick(e, '#skills')} className="nav-link text-gray-300 hover:text-indigo-500 transition-colors duration-300 px-3 py-2 text-lg font-medium">Skills</a>
-                    <a href="#projects" onClick={(e) => handleNavLinkClick(e, '#projects')} className="nav-link text-gray-300 hover:text-indigo-500 transition-colors duration-300 px-3 py-2 text-lg font-medium">Projects</a>
-                    <a href="#contact" onClick={(e) => handleNavLinkClick(e, '#contact')} className="nav-link text-gray-300 hover:text-indigo-500 transition-colors duration-300 px-3 py-2 text-lg font-medium">Contact</a>
-                </div>
-                <button
-                    className="hamburger block md:hidden text-gray-200 focus:outline-none z-50 relative"
-                    onClick={() => setIsNavActive(!isNavActive)}
-                >
-                    <div className={`bar h-0.5 w-6 bg-gray-200 my-1 transition-all duration-300 ${isNavActive ? 'rotate-45 translate-y-1.5' : ''}`}></div>
-                    <div className={`bar h-0.5 w-6 bg-gray-200 my-1 transition-all duration-300 ${isNavActive ? 'opacity-0' : ''}`}></div>
-                    <div className={`bar h-0.5 w-6 bg-gray-200 my-1 transition-all duration-300 ${isNavActive ? '-rotate-45 -translate-y-1.5' : ''}`}></div>
-                </button>
-            </div>
-        </nav>
-        <section id="home" className="hero relative flex items-center justify-center min-h-screen pt-20 px-4">
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <ParticleBackground
-                    particleColor="#8d5fff"
-                    lineColor="#4a00e0"
-                    particleCount={100}
-                    maxDistance={100}
-                    speedFactor={0.5}
-                    className="w-full h-full"
-                />
-            </div>
-            <div className="container mx-auto flex flex-col md:flex-row items-center justify-center gap-12 py-16 text-center md:text-left z-10">
-                <div className="hero-content max-w-2xl">
-                    <h1 className="animated-text text-5xl md:text-6xl lg:text-7xl font-montserrat font-extrabold leading-tight text-white mb-6">
-                        <span>Hi, I'm</span> <br />
-                        <span className="name text-indigo-400 block min-h-[1.5em] whitespace-nowrap">{nameText}</span>
-                        <span className="title text-gray-300 block text-4xl md:text-5xl lg:text-6xl">MERN Stack Developer</span>
-                    </h1>
-                    <p className="hero-description text-lg md:text-xl text-gray-400 mb-8 max-w-xl mx-auto md:mx-0">
-                        I build modern, responsive web applications with cutting-edge technologies.
-                        Passionately about creating seamless user experiences and solving complex problems with elegant
-                        solutions.
-                    </p>
-                    <div className="hero-btns flex flex-col sm:flex-row justify-center md:justify-start gap-4">
-                        <a href="#projects" className="btn btn-primary relative overflow-hidden rounded-full px-8 py-3 bg-indigo-600 text-white font-semibold text-lg shadow-lg hover:bg-indigo-700 hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
-                            <span>View Projects</span>
-                            <div className="absolute inset-0 bg-white opacity-20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-                        </a>
-                        <a href="#contact" className="btn btn-secondary relative overflow-hidden rounded-full px-8 py-3 bg-transparent border-2 border-indigo-600 text-indigo-400 font-semibold text-lg shadow-lg hover:bg-indigo-600 hover:text-white hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
-                            <span>Contact Me</span>
-                            <div className="absolute inset-0 bg-white opacity-20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-                        </a>
-                    </div>
-                </div>
-                {/* ... other sections ... */}
-            </div>
-        </section>
-        
-        {/* All other sections like Skills, Projects, Contact, Footer go here, I've removed them for brevity but they should be in your actual file. */}
-        {/* Make sure the <section id="contact"> containing your <form> is here. */}
-        <section id="contact" className="contact py-20 px-4 bg-gray-900">
-            <div className="container mx-auto">
-                <h2 className="section-title text-4xl md:text-5xl font-montserrat font-bold text-white text-center mb-12">Get In Touch</h2>
-                <div className="contact-container flex flex-col lg:flex-row gap-12 items-center lg:items-start">
-                    <div className="contact-info bg-gray-800 p-8 rounded-lg shadow-xl lg:w-1/2 text-center lg:text-left">
-                        {/* ... your contact info ... */}
-                    </div>
-                    <div className="contact-form bg-gray-800 p-8 rounded-lg shadow-xl lg:w-1/2">
-                        <form onSubmit={handleFormSubmit}>
-                            {/* ... your form inputs and button ... */}
+        <div className="min-h-screen bg-gray-950 text-gray-200 font-poppins relative overflow-hidden">
+            <CustomCursor />
+            <nav className="fixed w-full bg-gray-900 bg-opacity-90 backdrop-blur-sm z-40 shadow-lg py-4">
+              {/* ... your nav JSX ... */}
+            </nav>
+            <section id="home" className="hero relative flex items-center justify-center min-h-screen pt-20 px-4">
+              {/* ... your hero section JSX ... */}
+            </section>
+            <section id="skills" className="skills py-20 px-4 bg-gray-900">
+              {/* ... your skills section JSX ... */}
+            </section>
+            <section id="projects" className="projects py-20 px-4 bg-gray-950">
+              {/* ... your projects section JSX ... */}
+            </section>
+
+            {/* Contact Section */}
+            <section id="contact" className="contact py-20 px-4 bg-gray-900">
+                <div className="container mx-auto">
+                    <h2 className="section-title text-4xl md:text-5xl font-montserrat font-bold text-white text-center mb-12">Get In Touch</h2>
+                    <div className="contact-container flex flex-col lg:flex-row gap-12 items-center lg:items-start">
+                        <div className="contact-info bg-gray-800 p-8 rounded-lg shadow-xl lg:w-1/2 text-center lg:text-left">
+                            {/* ... your contact info ... */}
+                        </div>
+                        <div className="contact-form bg-gray-800 p-8 rounded-lg shadow-xl lg:w-1/2">
+                            <form onSubmit={handleFormSubmit}>
+                                {/* ... your form inputs and button ... */}
                                 <div className="form-group mb-6">
                                     <input
                                         type="text"
@@ -388,17 +397,18 @@ const handleFormSubmit = async (e) => {
                                         {formMessage.text}
                                     </div>
                                 )}
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
-        <footer className="footer bg-gray-950 py-8 px-4 text-center border-t border-gray-800">
-          <div className="container mx-auto">
-            <p className="text-gray-500 text-md">&copy; {new Date().getFullYear()} Om Prakash. All rights reserved.</p>
-          </div>
-        </footer>
-      </div>
+            </section>
+
+            <footer className="footer bg-gray-950 py-8 px-4 text-center border-t border-gray-800">
+                <div className="container mx-auto">
+                    <p className="text-gray-500 text-md">&copy; {new Date().getFullYear()} Om Prakash. All rights reserved.</p>
+                </div>
+            </footer>
+        </div>
     );
 };
 
