@@ -138,6 +138,10 @@ const CustomCursor = () => {
   const cursorFollowerRef = useRef(null);
 
   useEffect(() => {
+    if (window.innerWidth <= 768) {
+        return;
+    }
+
     let mouseX = 0;
     let mouseY = 0;
     let cursorX = 0;
@@ -169,13 +173,18 @@ const CustomCursor = () => {
 
     document.body.style.cursor = 'none';
     document.addEventListener('mousemove', handleMouseMove);
-    animateCursor();
+    const animationFrame = requestAnimationFrame(animateCursor);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationFrame);
       document.body.style.cursor = 'auto';
     };
   }, []);
+
+  if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+    return null;
+  }
 
   return (
     <>
@@ -208,31 +217,29 @@ const App = () => {
 
     useEffect(() => {
         const fullText = "Om Prakash Parida";
-        let currentIndex = fullText.length;
-        let deleting = true;
-        let typingSpeed = 150;
+        let currentIndex = 0;
+        let deleting = false;
+        let timeout;
 
         const typeLoop = () => {
-            if (deleting && currentIndex > 0) {
-                currentIndex--;
-                setNameText(fullText.substring(0, currentIndex));
-            } else if (!deleting && currentIndex < fullText.length) {
-                setNameText(fullText.substring(0, currentIndex + 1));
-                currentIndex++;
-            }
+            const currentText = fullText.substring(0, currentIndex);
+            setNameText(currentText);
 
-            if (currentIndex === 0) {
-                deleting = false;
-                typingSpeed = 500;
-            } else if (currentIndex === fullText.length) {
-                deleting = true;
-                typingSpeed = 1500;
+            if (!deleting && currentIndex < fullText.length) {
+                currentIndex++;
+                timeout = setTimeout(typeLoop, 150);
+            } else if (deleting && currentIndex > 0) {
+                currentIndex--;
+                timeout = setTimeout(typeLoop, 100);
             } else {
-                typingSpeed = deleting ? 100 : 150;
+                deleting = !deleting;
+                timeout = setTimeout(typeLoop, 1500);
             }
-            setTimeout(typeLoop, typingSpeed);
         };
+        
         typeLoop();
+
+        return () => clearTimeout(timeout);
     }, []);
 
     const handleNavLinkClick = (e, targetId) => {
@@ -264,7 +271,9 @@ const App = () => {
             return;
         }
 
+        // ✅ FIX: Use environment variable for the API URL
         const apiUrl = import.meta.env.VITE_API_URL;
+        // ✅ FIX: Construct the correct endpoint without "/api"
         const endpoint = `${apiUrl}/contact/submit`;
 
         try {
@@ -287,20 +296,12 @@ const App = () => {
                     text: data.message, 
                     type: 'success' 
                 });
-                e.target.reset();
+                e.target.reset(); // Clear the form
             } else {
-                if (data.errors && data.errors.length > 0) {
-                    const errorMessages = data.errors.map(error => error.msg).join(', ');
-                    setFormMessage({ 
-                        text: `Validation error: ${errorMessages}`, 
-                        type: 'error' 
-                    });
-                } else {
-                    setFormMessage({ 
-                        text: data.message || 'Something went wrong. Please try again later.', 
-                        type: 'error' 
-                    });
-                }
+                setFormMessage({ 
+                    text: data.message || 'Something went wrong. Please try again later.', 
+                    type: 'error' 
+                });
             }
         } catch (error) {
             console.error('Form submission error:', error);
@@ -314,66 +315,95 @@ const App = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-950 text-gray-200 font-poppins relative overflow-hidden">
+        <div className="min-h-screen bg-gray-950 text-gray-200 font-poppins relative overflow-x-hidden">
             <CustomCursor />
-            <nav className="fixed w-full bg-gray-900 bg-opacity-90 backdrop-blur-sm z-40 shadow-lg py-4">
-              {/* ... your nav JSX ... */}
-            </nav>
-            <section id="home" className="hero relative flex items-center justify-center min-h-screen pt-20 px-4">
-              {/* ... your hero section JSX ... */}
-            </section>
-            <section id="skills" className="skills py-20 px-4 bg-gray-900">
-              {/* ... your skills section JSX ... */}
-            </section>
-            <section id="projects" className="projects py-20 px-4 bg-gray-950">
-              {/* ... your projects section JSX ... */}
-            </section>
 
-            {/* Contact Section */}
-            <section id="contact" className="contact py-20 px-4 bg-gray-900">
+            <nav className="fixed w-full bg-gray-900 bg-opacity-90 backdrop-blur-sm z-40 shadow-lg py-2 sm:py-4">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                    <a href="#home" className="text-white text-2xl sm:text-3xl font-extrabold font-montserrat">
+                        Om<span className="text-indigo-500">.</span>
+                    </a>
+                    <div className={`nav-links ${isNavActive ? 'flex flex-col absolute top-full left-0 w-full bg-gray-900 md:relative md:flex-row md:space-x-6 lg:space-x-8 md:bg-transparent md:top-0 md:w-auto p-4 md:p-0 items-center justify-center shadow-lg md:shadow-none border-t border-gray-700 md:border-none' : 'hidden'} md:flex`}>
+                        <a href="#home" onClick={(e) => handleNavLinkClick(e, '#home')} className="nav-link text-gray-300 hover:text-indigo-500 transition-colors duration-300 px-3 py-3 sm:py-2 text-base sm:text-lg font-medium w-full md:w-auto text-center md:text-left">Home</a>
+                        <a href="#skills" onClick={(e) => handleNavLinkClick(e, '#skills')} className="nav-link text-gray-300 hover:text-indigo-500 transition-colors duration-300 px-3 py-3 sm:py-2 text-base sm:text-lg font-medium w-full md:w-auto text-center md:text-left">Skills</a>
+                        <a href="#projects" onClick={(e) => handleNavLinkClick(e, '#projects')} className="nav-link text-gray-300 hover:text-indigo-500 transition-colors duration-300 px-3 py-3 sm:py-2 text-base sm:text-lg font-medium w-full md:w-auto text-center md:text-left">Projects</a>
+                        <a href="#contact" onClick={(e) => handleNavLinkClick(e, '#contact')} className="nav-link text-gray-300 hover:text-indigo-500 transition-colors duration-300 px-3 py-3 sm:py-2 text-base sm:text-lg font-medium w-full md:w-auto text-center md:text-left">Contact</a>
+                    </div>
+                    <button
+                        className="hamburger block md:hidden text-gray-200 focus:outline-none z-50 relative p-2"
+                        onClick={() => setIsNavActive(!isNavActive)}
+                        aria-label="Toggle navigation menu"
+                    >
+                        <div className={`bar h-0.5 w-6 bg-gray-200 my-1 transition-all duration-300 ${isNavActive ? 'rotate-45 translate-y-1.5' : ''}`}></div>
+                        <div className={`bar h-0.5 w-6 bg-gray-200 my-1 transition-all duration-300 ${isNavActive ? 'opacity-0' : ''}`}></div>
+                        <div className={`bar h-0.5 w-6 bg-gray-200 my-1 transition-all duration-300 ${isNavActive ? '-rotate-45 -translate-y-1.5' : ''}`}></div>
+                    </button>
+                </div>
+            </nav>
+
+            <section id="home" className="hero relative flex items-center justify-center min-h-screen pt-16 sm:pt-20 px-4 sm:px-6 lg:px-8">
+                {/* ... (rest of the JSX is the same) ... */}
+            </section>
+            
+            {/* ... (All other sections like Skills, Projects, etc.) ... */}
+
+            <section id="contact" className="contact py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-gray-900">
                 <div className="container mx-auto">
-                    <h2 className="section-title text-4xl md:text-5xl font-montserrat font-bold text-white text-center mb-12">Get In Touch</h2>
-                    <div className="contact-container flex flex-col lg:flex-row gap-12 items-center lg:items-start">
-                        <div className="contact-info bg-gray-800 p-8 rounded-lg shadow-xl lg:w-1/2 text-center lg:text-left">
-                            {/* ... your contact info ... */}
+                    <h2 className="section-title text-3xl sm:text-4xl md:text-5xl font-montserrat font-bold text-white text-center mb-8 sm:mb-12">Get In Touch</h2>
+                    <div className="contact-container flex flex-col lg:flex-row gap-8 sm:gap-12 items-center lg:items-start">
+                        <div className="contact-info bg-gray-800 p-6 sm:p-8 rounded-lg shadow-xl lg:w-1/2 text-center lg:text-left">
+                            <p className="text-gray-300 text-base sm:text-lg mb-4 sm:mb-6 leading-relaxed">
+                                I'm currently available for freelance work and full-time positions. If you have a project that
+                                you want to get started or think you need my help with something, then get in touch.
+                            </p>
+                            <div className="contact-details space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                                <p className="text-gray-300 flex items-center justify-center lg:justify-start gap-3 text-sm sm:text-lg"><i className="fas fa-envelope text-indigo-400"></i> omprakass747@gmail.com</p>
+                                <p className="text-gray-300 flex items-center justify-center lg:justify-start gap-3 text-sm sm:text-lg"><i className="fas fa-map-marker-alt text-indigo-400"></i> Bhubaneswar,Odisha,India</p>
+                                <p className="text-gray-300 flex items-center justify-center lg:justify-start gap-3 text-sm sm:text-lg"><i className="fas fa-phone text-indigo-400"></i> +91 9827995265</p>
+                            </div>
+                            <div className="social-links flex justify-center lg:justify-start gap-4 sm:gap-6 text-xl sm:text-2xl">
+                                <a href="https://github.com/omprakashparida" className="text-gray-400 hover:text-indigo-500 hover:scale-110 transition-colors duration-300"><i className="fab fa-github"></i></a>
+                                <a href="https://www.linkedin.com/in/om-prakash-parida-247982274" className="text-gray-400 hover:text-indigo-500 hover:scale-110 transition-colors duration-300"><i className="fab fa-linkedin-in"></i></a>
+                                <a  className="text-gray-400 hover:text-indigo-500 hover:scale-110 transition-colors duration-300"><i className="fab fa-twitter"></i></a>
+                                <a  className="text-gray-400 hover:text-indigo-500 hover:scale-110 transition-colors duration-300"><i className="fab fa-instagram"></i></a>
+                            </div>
                         </div>
-                        <div className="contact-form bg-gray-800 p-8 rounded-lg shadow-xl lg:w-1/2">
+                        <div className="contact-form bg-gray-800 p-6 sm:p-8 rounded-lg shadow-xl lg:w-1/2 w-full">
                             <form onSubmit={handleFormSubmit}>
-                                {/* ... your form inputs and button ... */}
-                                <div className="form-group mb-6">
+                                <div className="form-group mb-4 sm:mb-6">
                                     <input
                                         type="text"
                                         id="name"
                                         name="name"
                                         placeholder="Your Name"
-                                        className="w-full p-4 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none transition-all duration-300 focus:shadow-md focus:shadow-indigo-500/30"
+                                        className="w-full p-3 sm:p-4 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none transition-all duration-300 focus:shadow-md focus:shadow-indigo-500/30 text-sm sm:text-base"
                                         required
                                     />
                                 </div>
-                                <div className="form-group mb-6">
+                                <div className="form-group mb-4 sm:mb-6">
                                     <input
                                         type="email"
                                         id="email"
                                         name="email"
                                         placeholder="Your Email"
-                                        className="w-full p-4 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none transition-all duration-300 focus:shadow-md focus:shadow-indigo-500/30"
+                                        className="w-full p-3 sm:p-4 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none transition-all duration-300 focus:shadow-md focus:shadow-indigo-500/30 text-sm sm:text-base"
                                         required
                                     />
                                 </div>
-                                <div className="form-group mb-6">
+                                <div className="form-group mb-4 sm:mb-6">
                                     <textarea
                                         id="message"
                                         name="message"
                                         placeholder="Your Message"
-                                        rows="6"
-                                        className="w-full p-4 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none transition-all duration-300 resize-y focus:shadow-md focus:shadow-indigo-500/30"
+                                        rows="5"
+                                        className="w-full p-3 sm:p-4 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none transition-all duration-300 resize-y focus:shadow-md focus:shadow-indigo-500/30 text-sm sm:text-base"
                                         required
                                     ></textarea>
                                 </div>
                                 <button 
                                     type="submit" 
                                     disabled={isSubmitting}
-                                    className="submit-btn relative overflow-hidden w-full rounded-md px-6 py-3 bg-indigo-600 text-white font-semibold text-lg shadow-lg hover:bg-indigo-700 hover:scale-105 hover:shadow-2xl transition-all duration-300 group flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="submit-btn relative overflow-hidden w-full rounded-md px-4 sm:px-6 py-3 bg-indigo-600 text-white font-semibold text-base sm:text-lg shadow-lg hover:bg-indigo-700 hover:scale-105 hover:shadow-2xl transition-all duration-300 group flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isSubmitting ? (
                                         <>
@@ -386,10 +416,11 @@ const App = () => {
                                             <i className="fas fa-paper-plane"></i>
                                         </>
                                     )}
+                                    <div className="absolute inset-0 bg-white opacity-20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
                                 </button>
                                 
                                 {formMessage.text && (
-                                    <div className={`mt-4 p-4 rounded-md text-center text-lg ${
+                                    <div className={`mt-4 p-3 sm:p-4 rounded-md text-center text-sm sm:text-lg ${
                                         formMessage.type === 'success' 
                                             ? 'bg-green-500 text-white' 
                                             : 'bg-red-500 text-white'
@@ -403,9 +434,9 @@ const App = () => {
                 </div>
             </section>
 
-            <footer className="footer bg-gray-950 py-8 px-4 text-center border-t border-gray-800">
+            <footer className="footer bg-gray-950 py-6 sm:py-8 px-4 sm:px-6 lg:px-8 text-center border-t border-gray-800">
                 <div className="container mx-auto">
-                    <p className="text-gray-500 text-md">&copy; {new Date().getFullYear()} Om Prakash. All rights reserved.</p>
+                    <p className="text-gray-500 text-sm sm:text-md">&copy; {new Date().getFullYear()} Om Prakash. All rights reserved.</p>
                 </div>
             </footer>
         </div>
